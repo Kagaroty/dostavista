@@ -5,32 +5,68 @@ namespace Dostavista;
 class Courier extends AbstractModel
 {
     /**
-     * @var string Phone number, 10 digits without starting "8".
+     * Уникальный номер курьера.
+     * @var int
      */
-    protected $phone;
+    protected $courierId ;
 
     /**
-     * @var string Courier name.
+     * Имя курьера.
+     * @var string
      */
     protected $name;
 
     /**
-     * @var string URI to courier photo.
+     * Контактный телефон курьера.
+     * @var string
      */
-    protected $photo;
+    protected $phone;
 
-    public function getPhone(): string
+    /**
+     * Ссылка на фотографию курьера.
+     * @var string
+     */
+    protected $photoUrl;
+    
+    /**
+     * Координаты курьера (широта).
+     * @var float
+     */
+    protected $latitude;
+
+    /**
+     * Координаты курьера (долгота).
+     * @var float
+     */
+    protected $longitude;
+
+    public function getCourierId(): ?int
     {
-        return $this->phone;
+        return $this->courierId;
     }
 
-    public function getName(): string
+    public function getName(): ?string
     {
         return $this->name;
     }
 
-    public function getPhoto(): string
+    public function getPhone(): ?string
     {
-        return $this->photo;
+        return $this->phone;
+    }
+
+    public function getPhotoUrl(): ?string
+    {
+        return $this->photoUrl;
+    }
+
+    public function getLatitude(): ?float
+    {
+        return $this->latitude;
+    }
+
+    public function getLongitude(): ?float
+    {
+        return $this->longitude;
     }
 }

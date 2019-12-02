@@ -11,17 +11,6 @@ class OrderRequest extends BaseOrder
     }
 
     /**
-     * @param int $requireCar See DELIVERY_TYPE_* constants
-     *
-     * @return $this
-     */
-    public function setRequireCar(int $requireCar)
-    {
-        $this->requireCar = $requireCar;
-        return $this;
-    }
-
-    /**
      * @param string $matter
      *
      * @return $this
@@ -33,24 +22,62 @@ class OrderRequest extends BaseOrder
     }
 
     /**
-     * @param int $insurance
+     * @param int $vehicleTypeId 
      *
      * @return $this
      */
-    public function setInsurance(int $insurance)
+    public function setVehicleType(int $vehicleTypeId)
     {
-        $this->insurance = $insurance;
+        $this->vehicleTypeId = $vehicleTypeId;
         return $this;
     }
 
     /**
-     * @param int $backpaymentMethod
+     * [setTotalWeightKg description]
+     * @param int|integer $totalWeightKg [description]
+     */
+    public function setTotalWeight (string $totalWeight)
+    {
+        $this->totalWeightKg = $totalWeight;
+        return $this;
+    }
+
+    /**
+     * @param int $insurance
      *
      * @return $this
      */
-    public function setBackpaymentMethod(int $backpaymentMethod)
+    public function setInsuranceAmount(int $insuranceAmount)
     {
-        $this->backpaymentMethod = $backpaymentMethod;
+        $this->insuranceAmount  = $insuranceAmount;
+        return $this;
+    }
+
+    /**
+     * @param bool $recipientsSmsNotification
+     *
+     * @return $this
+     */
+    public function setIsClientNotificationEnabled(bool $isClientNotificationEnabled)
+    {
+        $this->isClientNotificationEnabled = $isClientNotificationEnabled;
+        return $this;
+    }
+
+    /**
+     * @param bool $recipientsSmsNotification
+     *
+     * @return $this
+     */
+    public function setIsContactPersonNotificationEnabled(bool $isContactPersonNotificationEnabled)
+    {
+        $this->isContactPersonNotificationEnabled = $isContactPersonNotificationEnabled;
+        return $this;
+    }
+
+    public function setLoadersCount(int $loadersCount)
+    {
+        $this->loadersCount = $loadersCount;
         return $this;
     }
 
@@ -62,39 +89,6 @@ class OrderRequest extends BaseOrder
     public function setBackpaymentDetails(string $backpaymentDetails)
     {
         $this->backpaymentDetails = $backpaymentDetails;
-        return $this;
-    }
-
-    /**
-     * @param string $bapiUserAgent
-     *
-     * @return $this
-     */
-    public function setBapiUserAgent(string $bapiUserAgent)
-    {
-        $this->bapiUserAgent = $bapiUserAgent;
-        return $this;
-    }
-
-    /**
-     * @param bool $recipientsSmsNotification
-     *
-     * @return $this
-     */
-    public function setRecipientsSmsNotification(bool $recipientsSmsNotification)
-    {
-        $this->recipientsSmsNotification = $recipientsSmsNotification;
-        return $this;
-    }
-
-    /**
-     * @param string $text
-     *
-     * @return $this
-     */
-    public function setNote(string $text)
-    {
-        $this->note = $text;
         return $this;
     }
 }

@@ -14,10 +14,16 @@ class Dostavista
      */
     protected $httpClient;
 
-    protected $clientId;
-
+    /**
+     * Секретный авторизационный токен. Передается в HTTP заголовке запроса.
+     * @var [type]
+     */
     protected $token;
 
+    /**
+     * [$baseUrl description]
+     * @var [type]
+     */
     protected $baseUrl;
 
     public function __construct(ClientInterface $httpClient, array $config)
@@ -33,41 +39,41 @@ class Dostavista
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new ParseException('JSON decode error: ' . json_last_error_msg());
         }
-
         if (!is_array($data)) {
             throw new ParseException('Response is not an array');
         }
-
-        if ($data['result'] === 0) {
-            if (isset($data['error_message'], $data['error_message'][0])) {
-                throw new RequestException($data['error_message'][0]);
-            } elseif (isset($data['validation_errors']['point']) && count($data['validation_errors']['point']) > 0) {
+        if ($data['is_successful'] === false) {
+            if (isset($data['parameter_errors']['points']) && count($data['parameter_errors']['points']) > 0) {
                 $context = [];
-                foreach ($data['validation_errors']['point'] as $pointNumber => $fields) {
+                foreach ($data['parameter_errors']['points'] as $pointNumber => $fields) {
                     $context[] = ['point_number' => $pointNumber, 'fields' => $fields];
                 }
                 throw new ValidationException($context);
+            } elseif (isset($data['errors'], $data['errors'][0])) {
+                throw new RequestException($data['errors'][0]);
             } else {
                 throw new RequestException('Unknown request error');
             }
         }
-
-        unset($data['result']);
-
+        unset($data['is_successful']);
         return $data;
     }
 
     protected function post(string $endPoint, Exportable $request): array
     {
-        $response = $this->httpClient->request('post', $this->baseUrl . '/' . $endPoint, [
-            'form_params' => array_merge(
-                [
-                    'client_id' => $this->clientId,
-                    'token' => $this->token,
+                print_r($request->export());
+                die;
+        try {
+            $response = $this->httpClient->request('post', $this->baseUrl.'/'.$endPoint, [
+                'headers' => [
+                    'X-DV-Auth-Token' => $this->token,
+                    'Content-Type'    => 'application/json'
                 ],
-                $request->export()
-            )
-        ]);
+                'json' => $request->export()
+            ]);
+        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+            $response = $e->getResponse();
+        }
 
         return $this->parseResponse($response);
     }
@@ -75,13 +81,10 @@ class Dostavista
     protected function get(string $endPoint, array $params = []): array
     {
         $response = $this->httpClient->request('get', $this->baseUrl . '/' . $endPoint, [
-            'query' => array_merge(
-                [
-                    'client_id' => $this->clientId,
-                    'token' => $this->token,
-                ],
-                $params
-            )
+            'headers' => [
+                'X-DV-Auth-Token' => $this->token,
+            ],
+            'query' => $params
         ]);
 
         return $this->parseResponse($response);
@@ -95,7 +98,7 @@ class Dostavista
      */
     public function calculateOrder(OrderRequest $orderRequest): float
     {
-        $data = $this->post('calculate', $orderRequest);
+        $data = $this->post('calculate-order', $orderRequest);
 
         if (!isset($data['payment'])) {
             throw new ParseException('Invalid response: "payment" key is missing. Response data: ' . json_encode($data));
@@ -112,22 +115,22 @@ class Dostavista
      */
     public function createOrder(OrderRequest $orderRequest): int
     {
-        $data = $this->post('order', $orderRequest);
+        $data = $this->post('create-order', $orderRequest);
 
-        if (!isset($data['order_id'])) {
+        if (!isset($data['order']['order_id'])) {
             throw new ParseException('Invalid response: "order_id" key is missing. Response data: ' . json_encode($data));
         }
 
-        return (int) $data['order_id'];
+        return (int) $data['order']['order_id'];
     }
 
     /**
      * @return array|Order[]
      * @throws ParseException
      */
-    public function getOrders(): array
+    public function getOrders(array $params = []): array
     {
-        $data = $this->get('order');
+        $data = $this->get('orders', $params);
 
         if (!isset($data['orders'])) {
             throw new ParseException('Invalid response: "orders" key is missing. Response data: ' . json_encode($data));
@@ -148,17 +151,15 @@ class Dostavista
      * @return Order
      * @throws ParseException
      */
-    public function getOrder(int $id, $showPoints = false): Order
+    public function getOrder(int $id, array $params = []): Order
     {
-        $data = $this->get('order/' . $id, [
-            'show-points' => (int) $showPoints,
-        ]);
+        $data = $this->get('orders', ['order_id' => [$id]]);
 
-        if (!isset($data['order'])) {
+        if (!isset($data['orders'])) {
             throw new ParseException('Invalid response: "order" key is missing. Response data: ' . json_encode($data));
         }
 
-        return new Order($data['order']);
+        return new Order($data['orders'][0]);
     }
 
     /**
@@ -167,6 +168,18 @@ class Dostavista
     public function cancelOrder(CancelRequest $cancelRequest)
     {
         $this->post('cancel-order', $cancelRequest);
+    }
+
+    /**
+     * [getCourier description]
+     * @param  int    $order_id [description]
+     * @return [type]           [description]
+     */
+    public function getCourier(int $order_id)
+    {
+        $data = $this->get('courier', ['order_id' => [$order_id]]);
+
+        return new Courier($data['orders'][0]);
     }
 
     protected function signEvent(BaseEvent $event): string
@@ -194,7 +207,7 @@ class Dostavista
     public function buildOrderUrl(int $orderId): string
     {
         return sprintf(
-            'https://%s/cabinet/order-view/%u',
+            'https://%s/cabinet-new/order-view/%u',
             parse_url($this->baseUrl, PHP_URL_HOST),
             $orderId
         );

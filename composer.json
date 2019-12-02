@@ -1,5 +1,5 @@
 {
-    "name": "gietos/dostavista",
+    "name": "kagaroty/dostavista",
     "description": "Dostavista API client",
     "type": "library",
     "require": {
@@ -10,8 +10,8 @@
     "license": "MIT",
     "authors": [
         {
-            "name": "Sergey Kasatkin",
-            "email": "spam@onsky.ru"
+            "name": "Dimitry Kuzmin",
+            "email": "kuzmin@f5.com.ru"
         }
     ],
     "minimum-stability": "stable",

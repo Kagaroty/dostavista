@@ -7,304 +7,389 @@ use DateTime;
 class Order extends BaseOrder
 {
     /**
-     * Order was received by service, available for dispatcher, couriers can't see order.
-     */
-    const STATUS_NEW = 0;
-
-    /**
-     * Order is published, available for couriers to see.
-     */
-    const STATUS_OPEN = 1;
-
-    /**
-     * Courier assigned.
-     */
-    const STATUS_ACTIVE = 2;
-
-    /**
-     * Order was finished.
-     */
-    const STATUS_FINISHED = 3;
-
-    /**
-     * Order was canceled.
-     */
-    const STATUS_CANCELED = 10;
-
-    /**
-     * Awaiting clarification from client.
-     */
-    const STATUS_POSTPONED = 16;
-
-    /**
-     * @var int Dostavista order number
+     * Полный номер заказа
+     * @var int
      */
     protected $orderId;
 
     /**
-     * @var int Order status. See STATUS_* constants.
+     * Короткий номер заказа
+     * @var string
+     */
+    protected $orderName;
+
+    /**
+     * Дата и время создания заказа
+     * @var timestamp ISO 8601
+     */
+    protected $createdDateTime;
+
+    /**
+     * Дата и время завершения заказа
+     * @var timestamp ISO 8601
+     */
+    protected $finishDateTime;
+
+    /**
+     * Статус заказа
+     *
+     *  new             [Созданный заказ, ожидает одобрения оператора.]
+     *  available       [Заказ одобрен оператором и доступен курьерам.]
+     *  active          [Заказ выполняется курьером.]
+     *  completed       [Заказ выполнен.]
+     *  reactivated     [Заказ повторно активирован и вновь доступен курьерам]
+     *  draft           [Черновик заказа.]
+     *  canceled        [Заказ отменен.]
+     *  delayed         [Заказа отложен.]
+     * 
+     * @var string
      */
     protected $status;
 
     /**
-     * @var string Status name
+     * Общая стоимость заказа.
+     * @var string
      */
-    protected $statusName;
+    protected $paymentAmount;
 
     /**
-     * @var DateTime Order creation date & time
+     * Стоимость доставки. Входит в общую стоимость заказа (payment_amount).
+     * @var string
      */
-    protected $created;
+    protected $deliveryFeeAmount;
 
     /**
-     * @var float Full delivery cost
+     * Наценка за вес отправления. Входит в общую стоимость заказа (payment_amount).
+     * @var string
      */
-    protected $cost;
+    protected $weightFeeAmount;
 
     /**
-     * @var float Insurance fee
+     * Стоимость страховки. Входит в общую стоимость заказа (payment_amount).
+     * @var string
      */
-    protected $insuranceFee;
+    protected $insuranceFeeAmount;
 
     /**
-     * @var float Fee for receiving money from customer
+     * Стоимость погрузки-разгрузки. Входит в общую стоимость заказа (payment_amount).
+     * @var string
      */
-    protected $takingTransferFee;
+    protected $loadingFeeAmount;
 
     /**
-     * @var float Weight fee
+     * Комиссия за работу с деньгами (перевод выручки, получение денег на точках). Входит в общую стоимость заказа (payment_amount).
+     * @var string
      */
-    protected $weightFee;
+    protected $moneyTransferFeeAmount;
 
     /**
-     * @var int
+     * Наценка за километраж при выезде в пригород. Входит в общую стоимость заказа (payment_amount).
+     * @var string
      */
-    protected $smsNotification;
+    protected $suburbanDeliveryFeeAmount;
 
     /**
-     * @var int
+     * Наценка за доставку с ночевкой. Входит в общую стоимость заказа (payment_amount).
+     * @var string
      */
-    protected $backpaymentAmount;
+    protected $overnightFeeAmount;
 
     /**
-     * @var float
+     * Скидка. Уже учтена в общей стоимости заказа (payment_amount).
+     * @var string
      */
-    protected $deliveryFee;
+    protected $discountAmount;
 
     /**
-     * @var float
+     * Наценка за кассовое обслуживание. Входит в общую стоимость заказа (payment_amount).
+     * @var string
      */
-    protected $payment;
+    protected $codFeeAmount;
+
+    /**
+     * Ссылка на фотографию с чеком (подтверждение перевода выручки).
+     * @var string|null
+     */
+    protected $backpaymentPhotoURL;
+
+    /**
+     * Ссылка на маршрутный лист.
+     * @var string|null
+     */
+    protected $itineraryDocumentURL;
+
+    /**
+     * Ссылка на транспортную накладную.
+     * @var string|null
+     */
+    protected $waybillDocumentURL;
 
     /**
      * @var Courier
      */
     protected $courier = [];
 
+
     protected function setOrderId(int $orderId)
     {
         $this->orderId = $orderId;
     }
 
-    protected function setStatus(int $status)
+    protected function setOrderName(string $orderName)
+    {
+        $this->orderName = $orderName;
+    }
+
+    protected function setCreatedDateTime(string $createdDateTime)
+    {
+        $this->createdDateTime = new DateTime($createdDateTime);
+    }
+
+    protected function setFinishDateTime($finishDateTime)
+    {
+        if ($finishDateTime) {
+            $this->finishDateTime = new DateTime($finishDateTime);
+        }
+    }
+
+    protected function setStatus(string $status)
     {
         $this->status = $status;
     }
 
-    protected function setCreated(string $time)
+    protected function setTotalWeight (string $totalWeight)
     {
-        $this->created = new DateTime($time);
+        $this->totalWeightKg = $totalWeight;
     }
 
-    protected function setCost(float $cost)
+    protected function setIsClientNotificationEnabled(bool $isClientNotificationEnabled)
     {
-        $this->cost = $cost;
+        $this->isClientNotificationEnabled = $isClientNotificationEnabled;
     }
 
-    protected function setInsuranceFee(float $insuranceFee)
+    protected function setIsContactPersonNotificationEnabled(bool $isContactPersonNotificationEnabled)
     {
-        $this->insuranceFee = $insuranceFee;
+        $this->isContactPersonNotificationEnabled = $isContactPersonNotificationEnabled;
     }
 
-    protected function setTakingTransferFee(float $takingTransferFee)
+    protected function setLoadersCount(int $loadersCount)
     {
-        $this->takingTransferFee = $takingTransferFee;
+        $this->loadersCount = $loadersCount;
     }
 
-    protected function setWeightFee(float $weightFee)
+    protected function setPaymentAmount(string $paymentAmount)
     {
-        $this->weightFee = $weightFee;
+        $this->paymentAmount = $paymentAmount;
     }
 
-    protected function setCourier($courier)
+    protected function setDeliveryFeeAmount(string $deliveryFeeAmount)
     {
+        $this->deliveryFeeAmount = $deliveryFeeAmount;
+    }
+
+    protected function setWeightFeeAmount(string $weightFeeAmount)
+    {
+        $this->weightFeeAmount = $weightFeeAmount;
+    }
+
+    protected function setInsuranceAmount(string $insuranceAmount)
+    {
+        $this->insuranceAmount = $insuranceAmount;
+    }
+
+    protected function setInsuranceFeeAmount(string $insuranceFeeAmount)
+    {
+        $this->insuranceFeeAmount = $insuranceFeeAmount;
+    }
+
+    protected function setLoadingFeeAmount(string $loadingFeeAmount)
+    {
+        $this->loadingFeeAmount = $loadingFeeAmount;
+    }
+
+    protected function setMoneyTransferFeeAmount(string $moneyTransferFeeAmount)
+    {
+        $this->moneyTransferFeeAmount = $moneyTransferFeeAmount;
+    }
+
+    protected function setSuburbanDeliveryFeeAmount(string $suburbanDeliveryFeeAmount)
+    {
+        $this->suburbanDeliveryFeeAmount = $suburbanDeliveryFeeAmount;
+    }
+
+    protected function setOvernightFeeAmount(string $overnightFeeAmount)
+    {
+        $this->overnightFeeAmount = $overnightFeeAmount;
+    }
+
+    protected function setDiscountAmount(string $discountAmount)
+    {
+        $this->discountAmount = $discountAmount;
+    }
+
+    protected function setCodFeeAmount(string $codFeeAmount)
+    {
+        $this->codFeeAmount = $codFeeAmount;
+    }
+
+    protected function setBackpaymentDetails(?string $backpaymentDetails)
+    {
+        $this->backpaymentDetails = $backpaymentDetails;
+    }
+
+    protected function setBackpaymentPhotoUrl(?string $backpaymentPhotoUrl)
+    {
+        $this->backpaymentPhotoUrl = $backpaymentPhotoUrl;
+    }
+
+    protected function setItineraryDocumentUrl(?string $itineraryDocumentUrl)
+    {
+        $this->itineraryDocumentUrl = $itineraryDocumentUrl;
+    }
+
+    protected function setWayBillDocumentUrl(?string $waybillDocumentUrl)
+    {
+        $this->waybillDocumentUrl = $waybillDocumentUrl;
+    }
+
+    protected function setCourier($courier = [])
+    {
+        if (!$courier) {
+            $courier = [];
+        }
         if (!$courier instanceof Courier) {
             $courier = new Courier($courier);
         }
-
         $this->courier = $courier;
     }
 
-    protected function setSmsNotification(int $smsNotification)
-    {
-        $this->smsNotification = $smsNotification;
-    }
-
-    protected function setBackpaymentAmount(float $backpaymentAmount)
-    {
-        $this->backpaymentAmount = $backpaymentAmount;
-    }
-
-    protected function setDeliveryFee(float $deliveryFee)
-    {
-        $this->deliveryFee = $deliveryFee;
-    }
-
-    protected function setPayment(float $payment)
-    {
-        $this->payment = $payment;
-    }
-
-    protected function setRequireCar(int $requireCar)
-    {
-        $this->requireCar = $requireCar;
-    }
-
-    protected function setInsurance(float $insurance)
-    {
-        $this->insurance = $insurance;
-    }
-
-    protected function setBackpaymentMethod(int $backpaymentMethod)
-    {
-        $this->backpaymentMethod = $backpaymentMethod;
-    }
-
-    protected function setRecipientsSmsNotification(int $recipientsSmsNotification)
-    {
-        $this->recipientsSmsNotification = $recipientsSmsNotification;
-    }
-
-    protected function setRequireLoading(int $requireLoading)
-    {
-        $this->requireLoading = $requireLoading;
-    }
-
-    public function getOrderId(): int
+    public function getOrderId(): int 
     {
         return $this->orderId;
     }
 
-    public function getStatus(): int
+    public function getOrderName(): string 
+    {
+        return $this->orderName;
+    }
+
+    public function getCreatedDateTime(): string 
+    {
+        return $this->createdDateTime;
+    }
+
+    public function getFinishDateTime(): ?string 
+    {
+        return $this->finishDateTime;
+    }
+
+    public function getStatus(): string 
     {
         return $this->status;
     }
 
-    public function getStatusName(): string
+    public function getTotalWeight (): string 
     {
-        return $this->statusName;
+        return $this->totalWeightKg;
     }
 
-    public function getCreated(): DateTime
+    public function getIsClientNotificationEnabled(): bool 
     {
-        return $this->created;
+        return $this->isClientNotificationEnabled;
     }
 
-    public function getCost(): float 
+    public function getIsContactPersonNotificationEnabled(): bool 
     {
-        return $this->cost;
+        return $this->isContactPersonNotificationEnabled;
     }
 
-    public function getInsuranceFee(): float 
+    public function getLoadersCount(): int 
     {
-        return $this->insuranceFee;
+        return $this->loadersCount;
     }
 
-    public function getTakingTransferFee(): float
+    public function getPaymentAmount(): string 
     {
-        return $this->takingTransferFee;
+        return $this->paymentAmount;
     }
 
-    public function getWeightFee(): float
+    public function getDeliveryFeeAmount(): string 
     {
-        return $this->weightFee;
+        return $this->deliveryFeeAmount;
     }
 
-    public function getSmsNotification(): int
+    public function getWeightFeeAmount(): string 
     {
-        return $this->smsNotification;
+        return $this->weightFeeAmount;
     }
 
-    public function getBackpaymentAmount(): float
+    public function getInsuranceAmount(): string 
     {
-        return $this->backpaymentAmount;
+        return $this->insuranceAmount;
     }
 
-    public function getDeliveryFee(): float
+    public function getInsuranceFeeAmount(): string 
     {
-        return $this->deliveryFee;
+        return $this->insuranceFeeAmount;
     }
 
-    public function getPayment(): float
+    public function getLoadingFeeAmount(): string 
     {
-        return $this->payment;
+        return $this->loadingFeeAmount;
+    }
+
+    public function getMoneyTransferFeeAmount(): string 
+    {
+        return $this->moneyTransferFeeAmount;
+    }
+
+    public function getSuburbanDeliveryFeeAmount(): string 
+    {
+        return $this->suburbanDeliveryFeeAmount;
+    }
+
+    public function getOvernightFeeAmount(): string 
+    {
+        return $this->overnightFeeAmount;
+    }
+
+    public function getDiscountAmount(): string 
+    {
+        return $this->discountAmount;
+    }
+
+    public function getCodFeeAmount(): string 
+    {
+        return $this->codFeeAmount;
+    }
+
+    public function getBackpaymentDetails(): ?string 
+    {
+        return $this->backpaymentDetails;
+    }
+
+    public function getBackpaymentPhotoUrl(): ?string 
+    {
+        return $this->backpaymentPhotoUrl;
+    }
+
+    public function getItineraryDocumentUrl(): ?string 
+    {
+        return $this->itineraryDocumentUrl;
+    }
+
+    public function getWayBillDocumentUrl(): ?string 
+    {
+        return $this->waybillDocumentUrl;
+    }
+
+    public function getPoints(): array
+    {
+        return $this->points;
     }
 
     public function getCourier(): Courier
     {
         return $this->courier;
-    }
-
-    public function getRequireCar(): int
-    {
-        return $this->requireCar;
-    }
-
-    public function getMatter(): string
-    {
-        return $this->matter;
-    }
-
-    public function getInsurance(): float
-    {
-        return $this->insurance;
-    }
-
-    public function getBackpaymentMethod(): int
-    {
-        return $this->backpaymentMethod;
-    }
-
-    public function getBackpaymentDetails(): string
-    {
-        return $this->backpaymentDetails;
-    }
-
-    public function getBapiUserAgent(): string
-    {
-        return (string) $this->bapiUserAgent;
-    }
-
-    public function getRecipientsSmsNotification(): int
-    {
-        return $this->recipientsSmsNotification;
-    }
-
-    public function getRequireLoading(): int
-    {
-        return $this->requireLoading;
-    }
-
-    public function getNote(): string
-    {
-        return $this->note;
-    }
-
-    /**
-     * @return Point[]
-     */
-    public function getPoints(): array
-    {
-        return $this->points;
     }
 }

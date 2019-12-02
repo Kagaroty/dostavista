@@ -7,87 +7,61 @@ use DateTime;
 abstract class BaseOrder extends AbstractModel
 {
     /**
-     * On foot (<=15kg)
-     */
-    const DELIVERY_TYPE_FOOT = 0;
-
-    /**
-     * Passenger car (<=200kg)
-     */
-    const DELIVERY_TYPE_CAR = 1;
-
-    /**
-     * Truck
-     */
-    const DELIVERY_TYPE_TRUCK = 2;
-
-    /**
-     * Online wallet payment
-     */
-    const BACKPAYMENT_ONLINE = 1;
-
-    /**
-     * Transfer to the bank card
-     */
-    const BACKPAYMENT_CARD = 2;
-
-    /**
-     * Buyout buy a courier
-     */
-    const BACKPAYMENT_BUYOUT = 3;
-
-    /**
-     * @var int See DELIVERY_TYPE_* constants.
-     */
-    protected $requireCar;
-
-    /**
-     * @var string Shipment description
+     * Что везем
+     * @var float
      */
     protected $matter;
 
     /**
-     * @var int Insurance size
-     */
-    protected $insurance;
-
-    /**
-     * @var int See BACKPAYMENT_* constants
-     */
-    protected $backpaymentMethod;
-
-    /**
-     * @var string Backpayment additional info (online wallet ID, bank card PAN, ...)
-     */
-    protected $backpaymentDetails;
-
-    /**
-     * @var string See API reference for details
-     */
-    protected $bapiUserAgent;
-
-    /**
-     * @var bool Whether to send or not SMS notification for recipient
-     */
-    protected $recipientsSmsNotification;
-
-    /**
+     * Тип транспорта
      * @var int
      */
-    protected $requireLoading;
+    protected $vehicleTypeId = 6;
 
     /**
+     * Общий вес отправления, кг
+     * @var int
+     */
+    protected $totalWeightKg = 0;
+
+    /**
+     * Сумма страховки.
      * @var string
      */
-    protected $note;
+    protected $insuranceAmount = "0.00";
 
     /**
-     * @var Point[]
+     * Отправлять клиенту SMS уведомления о статусе заказа
+     * @var bool
+     */
+    protected $isClientNotificationEnabled = false;
+    
+    /**
+     * Отправлять получателям SMS с интервалом прибытия и телефоном курьера.
+     * @var bool
+     */
+    protected $isContactPersonNotificationEnabled = false;
+
+    /**
+     * Требуемое число грузчиков (включая водителя).
+     * @var int
+     */
+    protected $loadersCount = 0;
+
+    /**
+     * Реквизиты для перевода выручки. Например, номер карты или Qiwi-кошелька.
+     * @var string|null
+     */
+    protected $backpaymentDetails = null;
+
+    /**
+     * Список адресов (точек) в заказе. В заказе может быть от 2 до 99 точек. Значение по умолчанию: [].
+     * @var array
      */
     protected $points = [];
 
     /**
-     * @param Point[]|array $points
+     * @param Point[]|array|required $points
      *
      * @return $this
      */
@@ -95,7 +69,13 @@ abstract class BaseOrder extends AbstractModel
     {
         foreach ($points as &$point) {
             if (!$point instanceof Point) {
-                $point = new Point($point['address'], new DateTime($point['required_time_start']), new DateTime($point['required_time']), $point['phone'], $point);
+                $point = new Point(
+                    $point['address'], 
+                    new DateTime($point['required_start_datetime']), 
+                    new DateTime($point['required_finish_datetime']),
+                    $point['contact_person'], 
+                    $point
+                );
             }
         }
 
