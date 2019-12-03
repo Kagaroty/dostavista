@@ -52,7 +52,9 @@ $orderRequest = (new OrderRequest('Весы'))
             'Москва, Бобруйская, 28',
             new DateTime('18:00'),
             new DateTime('19:00'),
-            '9261234567'
+            (new ContactPerson([
+                'phone' => '9261234567'
+            ]))
         ))
         ->setTaking(3000),
     ]);
@@ -87,7 +89,6 @@ $orderRequest = (new OrderRequest('Весы'))
             new DateTime('18:00'),
             new DateTime('19:00'),
             (new ContactPerson([
-                'name'  => 'петров Петр Петрович',
                 'phone' => '9261234567'
             ]))
         ))
