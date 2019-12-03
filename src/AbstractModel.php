@@ -33,11 +33,6 @@ abstract class AbstractModel implements Configurable, Exportable
             }
 
             $propertyValue = $this->exportValue($propertyValue);
-
-            // if (is_array($propertyValue)) {
-            //     $propertyName = Inflector::singularize($propertyName);
-            // }
-
             $result[$propertyName] = $propertyValue;
         }
 

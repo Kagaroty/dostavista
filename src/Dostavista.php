@@ -26,12 +26,22 @@ class Dostavista
      */
     protected $baseUrl;
 
+    /**
+     * [__construct description]
+     * @param ClientInterface $httpClient [description]
+     * @param array           $config     [description]
+     */
     public function __construct(ClientInterface $httpClient, array $config)
     {
         $this->httpClient = $httpClient;
         $this->configure($config);
     }
 
+    /**
+     * [parseResponse description]
+     * @param  ResponseInterface $response [description]
+     * @return [type]                      [description]
+     */
     protected function parseResponse(ResponseInterface $response): array
     {
         $data = json_decode((string) $response->getBody(), true);
@@ -59,6 +69,12 @@ class Dostavista
         return $data;
     }
 
+    /**
+     * [post description]
+     * @param  string     $endPoint [description]
+     * @param  Exportable $request  [description]
+     * @return [type]               [description]
+     */
     protected function post(string $endPoint, Exportable $request): array
     {
         try {
@@ -76,9 +92,15 @@ class Dostavista
         return $this->parseResponse($response);
     }
 
+    /**
+     * [get description]
+     * @param  string $endPoint [description]
+     * @param  array  $params   [description]
+     * @return [type]           [description]
+     */
     protected function get(string $endPoint, array $params = []): array
     {
-        $response = $this->httpClient->request('get', $this->baseUrl . '/' . $endPoint, [
+        $response = $this->httpClient->request('get', $this->baseUrl.'/'.$endPoint, [
             'headers' => [
                 'X-DV-Auth-Token' => $this->token,
             ],
@@ -175,9 +197,12 @@ class Dostavista
      */
     public function getCourier(int $order_id)
     {
-        $data = $this->get('courier', ['order_id' => [$order_id]]);
+        $data = $this->get('courier', ['order_id' => $order_id]);
+        if (empty($data['courier'])) {
+            return false;
+        }
 
-        return new Courier($data['orders'][0]);
+        return new Courier($data['courier']);
     }
 
     /**

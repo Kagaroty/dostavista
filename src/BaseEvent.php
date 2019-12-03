@@ -4,11 +4,6 @@ namespace Dostavista;
 
 class BaseEvent extends AbstractModel
 {
-    /**
-     * Order changed
-     */
-    const EVENT_ORDER_CHANGED = 'order_changed';
-
     protected $eventData;
 
     protected $event_datetime;
