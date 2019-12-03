@@ -61,8 +61,6 @@ class Dostavista
 
     protected function post(string $endPoint, Exportable $request): array
     {
-                print_r($request->export());
-                die;
         try {
             $response = $this->httpClient->request('post', $this->baseUrl.'/'.$endPoint, [
                 'headers' => [
@@ -100,11 +98,11 @@ class Dostavista
     {
         $data = $this->post('calculate-order', $orderRequest);
 
-        if (!isset($data['payment'])) {
-            throw new ParseException('Invalid response: "payment" key is missing. Response data: ' . json_encode($data));
+        if (!isset($data['order']['payment_amount'])) {
+            throw new ParseException('Invalid response: "payment_amount" key is missing. Response data: ' . json_encode($data));
         }
 
-        return (float) $data['payment'];
+        return (float) $data['order']['payment_amount'];
     }
 
     /**
@@ -167,7 +165,7 @@ class Dostavista
      */
     public function cancelOrder(CancelRequest $cancelRequest)
     {
-        $this->post('cancel-order', $cancelRequest);
+        return $this->post('cancel-order', $cancelRequest);
     }
 
     /**
@@ -182,15 +180,29 @@ class Dostavista
         return new Courier($data['orders'][0]);
     }
 
+    /**
+     * [signEvent description]
+     * @param  BaseEvent $event [description]
+     * @return [type]           [description]
+     */
     protected function signEvent(BaseEvent $event): string
     {
-        return md5($this->token . json_encode($event->asArray(), JSON_UNESCAPED_UNICODE));
+        return hash_hmac('sha256', $event->getSignature(), $this->token);
     }
 
+    /**
+     * [getEvent description]
+     * @param  array  $eventData [description]
+     * @return [type]            [description]
+     */
     public function getEvent(array $eventData): BaseEvent
     {
-        $event = new BaseEvent($eventData['event'], $eventData['signature'], $eventData['data']);
-        if ($event->getSignature() !== $this->signEvent($event)) {
+        if (!isset($_SERVER['HTTP_X_DV_SIGNATURE'])) {
+           throw new InvalidSignatureException('Signature not found. Event data: ' . json_encode($eventData));
+        } 
+
+        $event = new BaseEvent($eventData);
+        if ($this->signEvent($event) != $_SERVER['HTTP_X_DV_SIGNATURE']) {
             throw new InvalidSignatureException('Could not validate received event. Event data: ' . json_encode($eventData));
         }
 

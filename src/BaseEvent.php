@@ -9,45 +9,40 @@ class BaseEvent extends AbstractModel
      */
     const EVENT_ORDER_CHANGED = 'order_changed';
 
-    /**
-     * @var string Event type
-     */
-    protected $event;
+    protected $eventData;
 
-    /**
-     * @var string Signature
-     */
-    protected $signature;
+    protected $event_datetime;
+    protected $event_type;
+    protected $order;
 
-    /**
-     * @var array Event data
-     */
-    protected $data;
-
-    public function __construct(string $event, string $signature, array $data)
+    public function __construct(array $eventData)
     {
         parent::__construct();
-        $this->event = $event;
-        $this->signature = $signature;
-        $this->data = $data;
+
+        $this->eventData = $eventData;
+        
+        $this->event_datetime = $this->event_datetime;
+        $this->event_type     = $this->event_type;
+        $this->order          = $this->order;
     }
 
     public function getSignature(): string
     {
-        return $this->signature;
+        return json_encode($this->eventData);
     }
 
-    public function getData(): array
+    public function getOrder(): array
     {
-        return $this->data;
+        return $this->eventData['order'];
     }
 
     public function asArray(): array
     {
-        return [
-            'event' => $this->event,
-            'signature' => '',
-            'data' => $this->data,
-        ];
+        return $this->eventData;
+    }
+
+    public function asString(): string
+    {
+        return json_encode($this->eventData);
     }
 }

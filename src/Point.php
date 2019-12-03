@@ -125,8 +125,8 @@ class Point extends AbstractModel
     {
         parent::__construct($config);
         $this->address                = $address;
-        $this->requiredStartDatetime  = $requiredStartDatetime;
-        $this->requiredFinishDatetime = $requiredFinishDatetime;
+        $this->requiredStartDatetime  = $requiredStartDatetime->format(DateTime::ATOM);
+        $this->requiredFinishDatetime = $requiredFinishDatetime->format(DateTime::ATOM);
 
         if (!$contactPerson instanceof ContactPerson) {
             $contactPerson = new ContactPerson($contactPerson);
@@ -139,15 +139,6 @@ class Point extends AbstractModel
         $this->address = $address;
         return $this;
     }
-
-    // public function setContactPerson($contactPerson): self
-    // {
-    //     if (!$person instanceof ContactPerson) {
-    //         $person = new ContactPerson($person);
-    //     }
-    //     $this->contactPerson = $contactPerson;
-    //     return $this;
-    // }
 
     public function setClientOrderId(?string $clientOrderId): self
     {

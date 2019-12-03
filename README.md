@@ -22,8 +22,7 @@ composer require kagaroty/dostavista
 ```php
 // Note, that we use sandbox API URL here, change to production one after tests 
 $client = new \Dostavista\Dostavista(new \GuzzleHttp\Client, [
-    'baseUrl' => 'https://robotapitest.dostavista.ru/bapi',
-    'clientId' => '...',
+    'baseUrl' => 'https://robotapitest.dostavista.ru/api/business/1.1',
     'token' => '...'
 ]);
 ```
@@ -35,8 +34,7 @@ use Dostavista\OrderRequest;
 use Dostavista\Point;
 
 $orderRequest = (new OrderRequest('Весы'))
-    ->setRequireCar(OrderRequest::DELIVERY_TYPE_FOOT)
-    ->setBackpaymentMethod(OrderRequest::BACKPAYMENT_CARD)
+    ->setVehicleType(6)
     ->setBackpaymentDetails('Карта Сбербанка XXXX, получатель СЕРГЕЙ ИВАНОВИЧ П')
     ->setPoints([
         (new Point(

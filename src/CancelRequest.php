@@ -13,7 +13,6 @@ class CancelRequest extends AbstractModel
     /**
      * CancelRequest constructor.
      * @param int $orderId Order ID
-     * @param int $substatusId Cancel reason. See SUBSTATUS_* constants
      */
     public function __construct(int $orderId)
     {
